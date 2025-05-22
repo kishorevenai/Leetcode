@@ -1,0 +1,1 @@
+{"root":["./src/server.ts","./src/config/allowedCors.ts","./src/config/corsOptions.ts"],"version":"5.8.3"}
