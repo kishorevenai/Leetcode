@@ -10,6 +10,8 @@ export const store = configureStore({
   },
   middleware: (getDefaultMiddlewar) =>
     getDefaultMiddlewar().concat(apiSlice.middleware),
+  devTools: true
 });
+
 
 setupListeners(store.dispatch);

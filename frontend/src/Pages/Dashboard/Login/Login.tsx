@@ -2,13 +2,20 @@ import Logo from "../../../assets/logo.png";
 import CustomTypography from "../../../components/Typography";
 import Input from "../../../components/Input";
 import PrimaryButton from "../../../components/Buttons/PrimaryButton";
-import { useState } from "react";
+import { use, useState } from "react";
 import { useLoginMutation } from "../../../feature/auth/authApiSlice";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../../../feature/auth/authSlice";
 
-const Login = () => {
+
+const Login = ({ setOpenLogin }: {
+  setOpenLogin: (open: boolean) => void;
+}) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
+
+  const dispatch = useDispatch();
 
   const [login, { data: loginData, isLoading, isError, isSuccess, error: loginError }] =
     useLoginMutation();
@@ -24,7 +31,12 @@ const Login = () => {
     setError("");
 
     try {
-      await login({ email, password }).unwrap();
+      const userDetails = await login({ email, password }).unwrap();
+      console.log("Login successful:", userDetails);
+
+      dispatch(setCredentials(userDetails));
+
+      setOpenLogin(false);
     } catch (error) {
       console.log("Error logging in:", error);
       setError("Login failed. Please try again.");
@@ -131,5 +143,6 @@ const Login = () => {
     </div>
   );
 };
+
 
 export default Login;

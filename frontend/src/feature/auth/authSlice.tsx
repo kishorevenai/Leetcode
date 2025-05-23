@@ -7,12 +7,20 @@ const authSlice = createSlice({
   },
   reducers: {
     setCredentials: (state, action) => {
-      state.token = action.payload.token;
+      console.log("action.payload", action.payload);
+      state.token = action.payload.accessToken;
     },
     logOut: (state) => {
       state.token = null;
     },
   },
 });
+
+
+export const { setCredentials, logOut } = authSlice.actions;
+
+
+export const selectCurrentToken = (state: any) => state.auth.token;
+
 
 export default authSlice.reducer;

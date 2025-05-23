@@ -4,9 +4,14 @@ import CustomTypography from "./Typography";
 import { useState } from "react";
 import Login from "../Pages/Dashboard/Login/Login";
 import { Modal } from "antd";
+import { selectCurrentToken } from "../feature/auth/authSlice";
+import { useSelector } from "react-redux";
+import { useAuth } from "../hooks/authHook";
 
 const Header = () => {
   const [openLogin, setOpenLogin] = useState(false);
+  const accessToken = useSelector(selectCurrentToken);
+  const { id, name, email, createdAt, updatedAt } = useAuth();
 
   const handleLogin = () => {
     setOpenLogin(!openLogin);
@@ -64,6 +69,7 @@ const Header = () => {
       }}
       className="flex justify-evenly items-center bg-gray-800 p-4"
     >
+      {name}
       <div
         style={{
           margin: "0 20px",
@@ -104,18 +110,33 @@ const Header = () => {
           onCancel={handleLogin}
           footer={null}
         >
-          <Login />
+          <Login setOpenLogin={setOpenLogin} />
         </Modal>
 
-        <CustomTypography
-          onClick={handleLogin}
-          style={{
-            cursor: "pointer",
-          }}
-          variant="h6"
-        >
-          Sign In
-        </CustomTypography>
+        {
+          accessToken ? (
+            <CustomTypography
+              onClick={handleLogin}
+              style={{
+                cursor: "pointer",
+              }}
+              variant="h6"
+            >
+              Log out
+            </CustomTypography>
+          ) : (
+            <CustomTypography
+              onClick={handleLogin}
+              style={{
+                cursor: "pointer",
+              }}
+              variant="h6"
+            >
+              Sign In
+            </CustomTypography>
+          )
+        }
+
       </div>
     </div>
   );
