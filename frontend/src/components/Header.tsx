@@ -24,7 +24,7 @@ const Header = () => {
     },
     {
       name: "Problems",
-      link: "/",
+      link: "/problems",
     },
     {
       name: "Contests",
@@ -69,7 +69,12 @@ const Header = () => {
       }}
       className="flex justify-evenly items-center bg-gray-800 p-4"
     >
-      {name}
+      <p style={{
+        color: "grey",
+        fontSize: "1rem",
+        fontWeight: "bold",
+      }}>Welcome</p>{name}
+
       <div
         style={{
           margin: "0 20px",
