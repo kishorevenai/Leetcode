@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.register = exports.login = void 0;
+exports.logout = exports.refresh = exports.register = exports.login = void 0;
 const client_1 = require("@prisma/client");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -57,8 +57,9 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         });
         res.cookie("token", refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "none",
+            secure: false,
+            //@ts-ignore
+            sameSite: "Lax",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 1 hour
         });
         return res.status(200).json({ accessToken, message: "Login successful." });
@@ -101,3 +102,53 @@ const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.register = register;
+const refresh = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const cookie = req.cookies;
+        if (!cookie || !cookie.token) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+        const refreshToken = cookie.token;
+        jsonwebtoken_1.default.verify(refreshToken, process.env.REFRESH_TOKEN, (err, decoded) => __awaiter(void 0, void 0, void 0, function* () {
+            if (err) {
+                return res.status(403).json({ message: "Forbidden" });
+            }
+            const user = yield prisma.user.findUnique({
+                where: {
+                    id: decoded.id,
+                },
+            });
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            const accessToken = jsonwebtoken_1.default.sign({
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
+            }, process.env.ACCESS_TOKEN, {
+                expiresIn: "1h",
+            });
+            return res.status(200).json({ accessToken });
+        }));
+    }
+    catch (error) {
+        return res.status(400).json({ message: "Unauthorised User" });
+    }
+});
+exports.refresh = refresh;
+const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "none",
+        });
+        return res.status(200).json({ message: "Logout successful." });
+    }
+    catch (error) {
+        return res.status(400).json({ message: "Unauthorised User" });
+    }
+});
+exports.logout = logout;

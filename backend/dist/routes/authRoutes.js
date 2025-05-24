@@ -9,4 +9,5 @@ const router = express_1.default.Router();
 const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 router.route("/login").post(asyncHandler(authController_1.login));
 router.route("/register").post(asyncHandler(authController_1.register));
+router.route("/refresh").get(asyncHandler(authController_1.refresh));
 exports.default = router;
