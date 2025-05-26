@@ -9,4 +9,6 @@ const router = express_1.default.Router();
 const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 router.post("/create", asyncHandler(problemController_1.createProblem));
 router.get("/all_problems", asyncHandler(problemController_1.getAllProblems));
+router.get("/:id", asyncHandler(problemController_1.getSpecificProblem));
+router.post("/submit", asyncHandler(problemController_1.submitProblem));
 exports.default = router;

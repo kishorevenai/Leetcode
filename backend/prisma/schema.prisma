@@ -30,12 +30,22 @@ model User {
 }
 
 model Problem {
-  id          String     @id @default(cuid())
-  title       String
-  difficulty  Difficulty
+  id            String         @id @default(cuid())
+  title         String
+  difficulty    Difficulty
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  User          User?          @relation(fields: [userId], references: [id])
+  userId        String?
+  ProblemDetail ProblemDetail?
+}
+
+model ProblemDetail {
+  id          String  @id @default(cuid())
+  constraints Json
+  examples    Json // Array of { input: string, output: string }
   description String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  User        User?      @relation(fields: [userId], references: [id])
-  userId      String?
+  starterCode Json // { language: string, code: string }
+  problem     Problem @relation(fields: [problemId], references: [id])
+  problemId   String  @unique
 }

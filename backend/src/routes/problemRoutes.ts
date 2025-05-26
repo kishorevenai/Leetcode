@@ -1,5 +1,10 @@
 import express from "express";
-import { createProblem, getAllProblems } from "../controller/problemController";
+import {
+  createProblem,
+  getAllProblems,
+  getSpecificProblem,
+  submitProblem,
+} from "../controller/problemController";
 
 const router = express.Router();
 
@@ -10,5 +15,7 @@ const asyncHandler =
 
 router.post("/create", asyncHandler(createProblem));
 router.get("/all_problems", asyncHandler(getAllProblems));
+router.get("/:id", asyncHandler(getSpecificProblem));
+router.post("/submit", asyncHandler(submitProblem));
 
 export default router;
