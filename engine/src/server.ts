@@ -64,25 +64,34 @@ async function runCodeInDocker({
   const containerPath = "/app/user_code.js";
 
   try {
-    fs.writeFileSync(filename, code);
+    const wrappedCode = wrapCodeWithTests(code, "twoSum");
 
-    console.log("Running Docker with command:");
-    console.log(
-      `docker run -v ${path.resolve(filename)}:${containerPath} js-runner`
-    );
+    fs.writeFileSync(filename, wrappedCode);
 
     const result = await execAsync(
       `docker run -v ${path.resolve(filename)}:${containerPath} js-runner`
     );
-    console.log("CHECKING OUTPUT", result);
 
     // 3. Return either stdout or stderr
-    return result.stdout || result.stderr;
+
+    const outputLines = result.stdout.trim().split("\n");
+    const testResults = outputLines.map((line) => {
+      try {
+        return JSON.parse(line);
+      } catch {
+        return { raw: line };
+      }
+    });
+
+    console.log("Docker run result:", testResults);
+
+    return JSON.stringify(testResults, null, 2);
   } catch (error) {
     console.error("Error running code in Docker:", error);
     throw new Error("Failed to run code in Docker");
   } finally {
-    fs.unlinkSync(filename); // or use fs.promises.unlink(filename)
+    console.log("TEST COMPLETED");
+    // fs.unlinkSync(filename); // or use fs.promises.unlink(filename)
   }
 }
 
@@ -101,10 +110,11 @@ async function main() {
       .then(async (message) => {
         if (message) {
           const parsedMessage: MessageToEngine = JSON.parse(message);
-          console.log(parsedMessage);
+
           const { code, language } = parsedMessage.message;
           try {
             const output = await runCodeInDocker({ code, language });
+
             await client.publish(
               parsedMessage.clientId,
               JSON.stringify({ status: "success", output })

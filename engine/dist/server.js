@@ -19,6 +19,32 @@ const child_process_1 = require("child_process");
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const execAsync = (0, util_1.promisify)(child_process_1.exec);
+function wrapCodeWithTests(userCode, functionName) {
+    const tests = [
+        { input: [[2, 7, 11, 15], 9], expected: [0, 1] },
+        { input: [[3, 2, 4], 6], expected: [1, 2] },
+        { input: [[3, 3], 6], expected: [0, 1] },
+    ];
+    const testRunner = tests.map((t, index) => {
+        return `
+    (() => {
+      try {
+        const result = ${functionName}(${JSON.stringify(t.input).slice(1, -1)});
+        const expected = ${JSON.stringify(t.expected)};
+        const passed = JSON.stringify(result) === JSON.stringify(expected);
+        console.log(JSON.stringify({ test: ${index + 1}, passed }));
+      } catch (err) {
+        console.log(JSON.stringify({ test: ${index + 1}, passed: false, error: err.message }));
+      }
+    })();
+  `;
+    });
+    return `
+${userCode}
+
+${testRunner.join("\n")}
+  `;
+}
 function runCodeInDocker(_a) {
     return __awaiter(this, arguments, void 0, function* ({ code, language, }) {
         const id = (0, uuid_1.v4)();
@@ -29,20 +55,29 @@ function runCodeInDocker(_a) {
         const filename = path_1.default.join(tmpDir, `temp_${id}.js`);
         const containerPath = "/app/user_code.js";
         try {
-            fs_1.default.writeFileSync(filename, code);
-            console.log("Running Docker with command:");
-            console.log(`docker run -v ${path_1.default.resolve(filename)}:${containerPath} js-runner`);
+            const wrappedCode = wrapCodeWithTests(code, "twoSum");
+            fs_1.default.writeFileSync(filename, wrappedCode);
             const result = yield execAsync(`docker run -v ${path_1.default.resolve(filename)}:${containerPath} js-runner`);
-            console.log("CHECKING OUTPUT", result);
             // 3. Return either stdout or stderr
-            return result.stdout || result.stderr;
+            const outputLines = result.stdout.trim().split("\n");
+            const testResults = outputLines.map((line) => {
+                try {
+                    return JSON.parse(line);
+                }
+                catch (_a) {
+                    return { raw: line };
+                }
+            });
+            console.log("Docker run result:", testResults);
+            return JSON.stringify(testResults, null, 2);
         }
         catch (error) {
             console.error("Error running code in Docker:", error);
             throw new Error("Failed to run code in Docker");
         }
         finally {
-            fs_1.default.unlinkSync(filename); // or use fs.promises.unlink(filename)
+            console.log("TEST COMPLETED");
+            // fs.unlinkSync(filename); // or use fs.promises.unlink(filename)
         }
     });
 }
@@ -60,7 +95,6 @@ function main() {
                 .then((message) => __awaiter(this, void 0, void 0, function* () {
                 if (message) {
                     const parsedMessage = JSON.parse(message);
-                    console.log(parsedMessage);
                     const { code, language } = parsedMessage.message;
                     try {
                         const output = yield runCodeInDocker({ code, language });
