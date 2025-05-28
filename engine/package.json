@@ -12,6 +12,13 @@
   "type": "commonjs",
   "dependencies": {
     "@types/redis": "^4.0.10",
-    "redis": "^5.1.0"
+    "child_process": "^1.0.2",
+    "fs": "^0.0.1-security",
+    "redis": "^5.1.0",
+    "utils": "^0.3.1",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21"
   }
 }
