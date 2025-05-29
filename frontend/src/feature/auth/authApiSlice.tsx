@@ -22,13 +22,27 @@ export const authApiSlice = apiSlice.injectEndpoints({
           if (accessToken) {
             dispatch(setCredentials({ accessToken }));
           }
-
         } catch (error) {
           console.error("Failed to refresh token:", error);
         }
       },
     }),
-  })
-})
+    logout: builder.mutation({
+      query: () => ({
+        url: "/auth/logout",
+        method: "POST",
+      }),
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(setCredentials({ accessToken: "" }));
+        } catch (error) {
+          console.error("Failed to logout:", error);
+        }
+      },
+    }),
+  }),
+});
 
-export const { useLoginMutation, useRefreshMutation } = authApiSlice;
+export const { useLoginMutation, useRefreshMutation, useLogoutMutation } =
+  authApiSlice;

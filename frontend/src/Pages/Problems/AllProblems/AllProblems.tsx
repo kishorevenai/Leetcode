@@ -112,7 +112,7 @@ const AllProblems = () => {
                     fontSize: "10px",
                   }}
                 >
-                  {index}.
+                  {index + 1}.
                 </p>
                 <h3
                   style={{

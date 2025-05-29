@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useGetProblemByIdQuery } from "../../../feature/problems/problemApiSlice";
 import type { ProblemDetail } from "../../../types/ProblemTypes";
@@ -53,6 +53,15 @@ const EachProblem = () => {
     }),
   });
 
+  useEffect(() => {
+    if (isSuccess) {
+      setCode(
+        problemDetails?.ProblemDetail?.starterCode.code ||
+          "// Write your code here"
+      );
+    }
+  }, [id, isSuccess]);
+
   let descriptionPannel = null;
   let solvePannel = null;
 
@@ -62,6 +71,8 @@ const EachProblem = () => {
     (descriptionPannel = "Failed to fetch description"),
       (solvePannel = "Failed to fetch description");
   } else if (isSuccess) {
+    console.log("Problem details:", problemDetails);
+    // Prepare the description panel and solve panel
     descriptionPannel = (
       <div
         style={{
@@ -180,7 +191,7 @@ const EachProblem = () => {
         }}
       >
         {/* Language Dropdown in top-right corner */}
-        <select
+        {/* <select
           value={language}
           onChange={handleLanguageChange}
           style={{
@@ -199,7 +210,7 @@ const EachProblem = () => {
           <option value="python">Python</option>
           <option value="cpp">C++</option>
           <option value="java">Java</option>
-        </select>
+        </select> */}
 
         <Editor
           height="100%"
@@ -232,7 +243,6 @@ const EachProblem = () => {
   } else if (codeSubmissionSuccess) {
     const parsedJson = JSON.parse(codeSubmissionData?.result.output);
     resultStatus = parsedJson.every((testResult) => testResult.passed);
-    // Display each test result with a colored dot
 
     testContent = parsedJson.map((testResult, index) => (
       <div

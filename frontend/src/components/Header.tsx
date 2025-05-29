@@ -7,14 +7,26 @@ import { Modal } from "antd";
 import { selectCurrentToken } from "../feature/auth/authSlice";
 import { useSelector } from "react-redux";
 import { useAuth } from "../hooks/authHook";
+import { useLogoutMutation } from "../feature/auth/authApiSlice";
 
 const Header = () => {
   const [openLogin, setOpenLogin] = useState(false);
   const accessToken = useSelector(selectCurrentToken);
   const { id, name, email, createdAt, updatedAt } = useAuth();
+  const [logout, { isLoading, isError, isSuccess, error }] =
+    useLogoutMutation();
 
   const handleLogin = () => {
     setOpenLogin(!openLogin);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout({}).unwrap();
+
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
   };
 
   const Headers = [
@@ -69,11 +81,16 @@ const Header = () => {
       }}
       className="flex justify-evenly items-center bg-gray-800 p-4"
     >
-      <p style={{
-        color: "grey",
-        fontSize: "1rem",
-        fontWeight: "bold",
-      }}>Welcome</p>{name}
+      <p
+        style={{
+          color: "grey",
+          fontSize: "1rem",
+          fontWeight: "bold",
+        }}
+      >
+        Welcome
+      </p>
+      {name}
 
       <div
         style={{
@@ -118,30 +135,27 @@ const Header = () => {
           <Login setOpenLogin={setOpenLogin} />
         </Modal>
 
-        {
-          accessToken ? (
-            <CustomTypography
-              onClick={handleLogin}
-              style={{
-                cursor: "pointer",
-              }}
-              variant="h6"
-            >
-              Log out
-            </CustomTypography>
-          ) : (
-            <CustomTypography
-              onClick={handleLogin}
-              style={{
-                cursor: "pointer",
-              }}
-              variant="h6"
-            >
-              Sign In
-            </CustomTypography>
-          )
-        }
-
+        {accessToken ? (
+          <CustomTypography
+            onClick={handleLogout}
+            style={{
+              cursor: "pointer",
+            }}
+            variant="h6"
+          >
+            Log out
+          </CustomTypography>
+        ) : (
+          <CustomTypography
+            onClick={handleLogin}
+            style={{
+              cursor: "pointer",
+            }}
+            variant="h6"
+          >
+            Sign In
+          </CustomTypography>
+        )}
       </div>
     </div>
   );
