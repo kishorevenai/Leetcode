@@ -14,10 +14,12 @@ const EachProblem = () => {
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setLanguage(e.target.value);
   };
+  const { id } = useParams();
 
   const [
     submitCode,
     {
+      data: codeSubmissionData,
       isLoading: codeSubmissionLoading,
       isError: codeSubmissionError,
       isSuccess: codeSubmissionSuccess,
@@ -38,8 +40,6 @@ const EachProblem = () => {
       console.error("Submission failed:", err);
     }
   };
-
-  const { id } = useParams();
 
   const {
     data: problemDetails,
@@ -62,7 +62,6 @@ const EachProblem = () => {
     (descriptionPannel = "Failed to fetch description"),
       (solvePannel = "Failed to fetch description");
   } else if (isSuccess) {
-    console.log("CHECKING RESULT", problemDetails);
     descriptionPannel = (
       <div
         style={{
@@ -111,7 +110,6 @@ const EachProblem = () => {
               style={{
                 marginTop: "30px",
                 display: "flex",
-                flexDirection: "column",
               }}
             >
               <CustomTypography
@@ -217,6 +215,63 @@ const EachProblem = () => {
     );
   }
 
+  let testContent;
+  let resultStatus = null;
+  if (codeSubmissionLoading) {
+    testContent = (
+      <CustomTypography style={{ color: "grey" }}>
+        Running tests...
+      </CustomTypography>
+    );
+  } else if (codeSubmissionError) {
+    testContent = (
+      <CustomTypography style={{ color: "red" }}>
+        Error: {codeSubmissionErrorDetails?.data?.message || "Unknown error"}
+      </CustomTypography>
+    );
+  } else if (codeSubmissionSuccess) {
+    const parsedJson = JSON.parse(codeSubmissionData?.result.output);
+    resultStatus = parsedJson.every((testResult) => testResult.passed);
+    // Display each test result with a colored dot
+
+    testContent = parsedJson.map((testResult, index) => (
+      <div
+        style={{
+          borderRadius: "5px",
+          padding: "10px",
+          border: "1px solid grey",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "10px",
+        }}
+      >
+        <div
+          style={{
+            width: "5px",
+            height: "5px",
+            backgroundColor: testResult.passed ? "green" : "red",
+            borderRadius: "50%",
+          }}
+        ></div>
+        <CustomTypography
+          style={{
+            color: "white",
+          }}
+          key={index}
+        >
+          <p>Case {index + 1}</p>
+        </CustomTypography>
+      </div>
+    ));
+  } else {
+    testContent = (
+      <CustomTypography style={{ color: "grey" }}>
+        Click "Run" to execute your code and see the results.
+      </CustomTypography>
+    );
+  }
+
   return (
     <div className="h-screen">
       <Splitter
@@ -255,15 +310,53 @@ const EachProblem = () => {
               style={{
                 backgroundColor: "#D3D3D3",
                 borderRadius: "10px",
-                padding: "10px",
+                padding: "5px",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "start",
               }}
             >
-              <p>Test Cases</p>
+              <div
+                style={{
+                  gap: "10px",
+                }}
+                className="flex flex-col justify-start items-start"
+              >
+                {resultStatus === true && (
+                  <CustomTypography
+                    style={{
+                      color: "green",
+                      fontWeight: "bold",
+                      fontSize: "16px",
+                    }}
+                  >
+                    Passed
+                  </CustomTypography>
+                )}
+
+                {resultStatus === false && (
+                  <CustomTypography
+                    style={{
+                      color: "red",
+                      fontWeight: "bold",
+                      fontSize: "16px",
+                    }}
+                  >
+                    Failed
+                  </CustomTypography>
+                )}
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "10px",
+                  }}
+                >
+                  {testContent}
+                </div>
+              </div>
               <Button type="primary" style={{}} onClick={handleCodeSubmission}>
-                Submit
+                Run
               </Button>
             </Splitter.Panel>
           </Splitter>

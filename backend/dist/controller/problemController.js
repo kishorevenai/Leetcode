@@ -78,7 +78,6 @@ const getSpecificProblem = (req, res) => __awaiter(void 0, void 0, void 0, funct
         if (!problem) {
             return res.status(404).json({ error: "Problem not found" });
         }
-        console.log("CHECKING PROBLEM", problem);
         return res.status(200).json(problem);
     }
     catch (error) {
@@ -94,9 +93,10 @@ const submitProblem = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             code,
             language,
         });
+        console.log("Submission result:", result);
         return res
             .status(200)
-            .json({ message: "Submission problems fetched successfully" });
+            .json({ message: "Submission problems fetched successfully", result });
     }
     catch (error) {
         console.error("Error submitting problem:", error);

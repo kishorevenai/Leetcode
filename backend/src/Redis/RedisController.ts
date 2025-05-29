@@ -40,7 +40,6 @@ export class RedisController {
       const id = this.getRandomClientId();
 
       this.client.subscribe(id, (message) => {
-        
         this.client.unsubscribe(id);
         resolve(JSON.parse(message));
       });
